@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #0a7180 0%, #0e8a9a 30%, #f4e5a0 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23ffffff" opacity="0.1"/></svg>') repeat;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .page-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 60px);
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            text-align: center;
+            color: white;
+        }
+
+        .org-name {
+            font-weight: 800;
+            margin-bottom: 12px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            letter-spacing: 1px;
+        }
+
+        .website {
+            font-size: 18px;
+            opacity: 0.95;
+            font-weight: 500;
+        }
+
+        .website a {
+            color: #f4d03f;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .website a:hover {
+            color: #f7dc6f;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 20px;
+            padding: 50px;
+            margin-bottom: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            flex: 1;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Search Form */
+        .search-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .search-title {
+            font-size: 2.2rem;
+            color: #2c3e50;
+            margin-bottom: 35px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .search-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(135deg, #0a7180 0%, #f4d03f 100%);
+            border-radius: 2px;
+        }
+
+        .search-form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .input-group {
+            position: relative;
+        }
+
+        #studentId {
+            padding: 18px 25px;
+            font-size: 1.1rem;
+            border: 2px solid #e3e8ed;
+            border-radius: 15px;
+            width: 350px;
+            transition: all 0.3s ease;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        #studentId:focus {
+            border-color: #0a7180;
+            box-shadow: 0 0 20px rgba(10, 113, 128, 0.3);
+            transform: translateY(-2px);
+        }
+
+        #studentId::placeholder {
+            color: #a0a8b0;
+            font-style: italic;
+        }
+
+        /* Autocomplete dropdown */
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e3e8ed;
+            border-top: none;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f4f7;
+            transition: background-color 0.2s ease;
+        }
+
+        .autocomplete-item:hover,
+        .autocomplete-item.selected {
+            background-color: #f8f9fa;
+        }
+
+        .autocomplete-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-id {
+            font-weight: 600;
+            color: #0a7180;
+        }
+
+        .student-name {
+            color: #ffffff;
+            font-size: 0.9rem;
+        }
+
+        .student-class {
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        .search-btn {
+            background: #0a7180;
+            color: white;
+            padding: 18px 35px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(10, 113, 128, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .search-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .search-btn:hover::before {
+            left: 100%;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(10, 113, 128, 0.4);
+        }
+
+        .search-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .student-info {
+            background: #0a7180;
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 35px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(10, 113, 128, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .student-info::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .student-details {
+            position: relative;
+            z-index: 1;
+        }
+
+        .student-name {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .student-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .meta-label {
+            font-weight: 600;
+            opacity: 0.9;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        /* Scores Grid - 2 columns layout */
+        .scores-grid-two-columns {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .score-card {
+            background: white;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f0f4f7;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #0a7180 0%, #f4d03f 100%);
+        }
+
+        .score-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .score-header {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #f8f9fa;
+            text-align: center;
+        }
+
+        .score-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+        }
+
+        .score-badge {
+            font-size: 1.4rem;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            background: linear-gradient(135deg, #0a7180 0%, #0e8a9a 100%);
+            box-shadow: 0 4px 15px rgba(10, 113, 128, 0.3);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .score-badge.numeric {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .score-badge.grade {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        /* Notes Section */
+        .notes-section {
+            margin-top: 30px;
+        }
+
+        .notes-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f0f4f7;
+        }
+
+        .note-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #0a7180;
+        }
+
+        .note-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .note-label {
+            font-weight: 600;
+            color: #0a7180;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .note-text {
+            color: #555;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .note-text a {
+            color: #0a7180;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .note-text a:hover {
+            color: #0e8a9a;
+            border-bottom-color: #0e8a9a;
+        }
+
+        .no-scores {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            font-style: italic;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .subject-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f0f4f7;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subject-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(135deg, #0a7180 0%, #f4d03f 100%);
+        }
+
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .subject-info h3 {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .subject-code {
+            color: #0a7180;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .subject-credits {
+            background: #f8f9fa;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .scores-detail {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .score-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: white;
+            display: inline-block;
+            min-width: 50px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .score-value.excellent { 
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            animation: pulse 2s infinite;
+        }
+        .score-value.good { 
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+        }
+        .score-value.average { 
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%); 
+            color: #333; 
+        }
+        .score-value.poor { 
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
+            50% { box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4); }
+            100% { box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); }
+        }
+
+        .grade-badge {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+
+        .subject-note {
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #666;
+            border-left: 3px solid #0a7180;
+        }
+
+        .subject-note:empty {
+            display: none;
+        }
+
+        /* Overall Results */
+        .overall-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .overall-gpa {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #0a7180;
+            margin-bottom: 10px;
+        }
+
+        .overall-result {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .overall-note {
+            color: #666;
+            font-style: italic;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 25px 0;
+            border: 1px solid #f5c6cb;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(114, 28, 36, 0.1);
+            font-size: 1.1rem;
+            font-weight: 500;
+            display: none;
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .footer-info {
+            flex: 1;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: #f4d03f;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #f7dc6f;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 20px;
+            }
+
+            .org-name {
+                font-size: 2rem;
+                line-height: 1.3;
+            }
+
+            .main-content {
+                padding: 30px 20px;
+                border-radius: 15px;
+            }
+
+            .search-title {
+                font-size: 1.8rem;
+            }
+
+            .search-form {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            #studentId {
+                width: 100%;
+                padding: 16px 20px;
+                border-radius: 12px;
+            }
+
+            .search-btn {
+                width: 100%;
+                padding: 16px 25px;
+                border-radius: 12px;
+            }
+
+            .student-meta {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .scores-detail {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .subject-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .overall-gpa {
+                font-size: 2.5rem;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .footer-links {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            /* Responsive scores grid */
+            .scores-grid-two-columns {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .score-card {
+                padding: 14px;
+            }
+
+            .score-header {
+                font-size: 1rem;
+            }
+
+            .score-badge {
+                font-size: 1.2rem;
+                padding: 8px 16px;
+                min-width: 70px;
+            }
+
+            .notes-content {
+                padding: 20px 15px;
+            }
+
+            .note-item {
+                padding: 12px;
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 20px 15px;
+            }
+
+            .subject-card {
+                padding: 20px;
+            }
+
+            .scores-detail {
+                grid-template-columns: 1fr;
+            }
+
+            .overall-gpa {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <h1 class="org-name">HỌC VIỆN TÀI CHÍNH</h1>
+                <div class="website">
+                    <a href="https://www.hvtc.edu.vn" target="_blank">www.hvtc.edu.vn</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container page-wrapper">
+        <div class="main-content">
+            <!-- Search Section -->
+            <div class="search-section">
+                <h2 class="search-title">Tra cứu điểm sinh viên</h2>
+                <form class="search-form" id="searchForm">
+                    <div class="input-group">
+                        <input 
+                            type="text" 
+                            id="studentId" 
+                            placeholder="Nhập mã sinh viên hoặc tên sinh viên..."
+                            autocomplete="off"
+                        >
+                        <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
+                    </div>
+                    <button type="submit" class="search-btn" id="searchBtn">
+                        🔍 Tra cứu
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results" class="results-section">
+                <!-- Student Info will be inserted here -->
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="error-message">
+                Không tìm thấy thông tin sinh viên!
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>&copy; 2025 Học viện Tài chính. Tất cả quyền được bảo lưu.</p>
+                    <p>Địa chỉ: 58 Lê Văn Hiến, Đức Thắng, Bắc Từ Liêm, Hà Nội</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#" onclick="showContact()">Liên hệ</a>
+                    <a href="#" onclick="showHelp()">Hướng dẫn</a>
+                    <a href="#" onclick="showPrivacy()">Chính sách</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Global variables
+        let selectedIndex = -1;
+        let autocompleteItems = [];
+
+        // DOM elements
+        const studentIdInput = document.getElementById('studentId');
+        const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+        const searchForm = document.getElementById('searchForm');
+        const searchBtn = document.getElementById('searchBtn');
+        const resultsSection = document.getElementById('results');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Auto-focus on input when page loads
+        window.addEventListener('load', () => {
+            studentIdInput.focus();
+        });
+
+        // Search form submission
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            searchStudent();
+        });
+
+        studentIdInput.addEventListener('keydown', handleKeyDown);
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        async function handleInput(e) {
+            const query = e.target.value.trim();
+            
+            if (query.length < 2) {
+                hideAutocomplete();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    showAutocomplete(data.data);
+                } else {
+                    hideAutocomplete();
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                hideAutocomplete();
+            }
+        }
+
+        function showAutocomplete(items) {
+            autocompleteItems = items;
+            selectedIndex = -1;
+            
+            autocompleteDropdown.innerHTML = items.map((item, index) => `
+                <div class="autocomplete-item" onclick="selectStudent('${item.id}', '${item.name}')" data-index="${index}">
+                    <div class="student-id">${item.id}</div>
+                    <div class="student-name">${item.name}</div>
+                    <div class="student-class">${item.class}</div>
+                </div>
+            `).join('');
+            
+            autocompleteDropdown.style.display = 'block';
+        }
+
+        function hideAutocomplete() {
+            autocompleteDropdown.style.display = 'none';
+            selectedIndex = -1;
+        }
+
+        function handleKeyDown(e) {
+            const items = autocompleteDropdown.querySelectorAll('.autocomplete-item');
+            
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedIndex >= 0 && autocompleteItems[selectedIndex]) {
+                    const item = autocompleteItems[selectedIndex];
+                    selectStudent(item.id, item.name);
+                } else {
+                    searchStudent();
+                }
+            } else if (e.key === 'Escape') {
+                hideAutocomplete();
+            }
+        }
+
+        function updateSelection(items) {
+            items.forEach((item, index) => {
+                if (index === selectedIndex) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        function selectStudent(id, name) {
+            studentIdInput.value = id;
+            hideAutocomplete();
+            searchStudent();
+        }
+
+        async function searchStudent() {
+            const studentId = studentIdInput.value.trim();
+            
+            if (!studentId) {
+                showError('Vui lòng nhập mã sinh viên!');
+                return;
+            }
+
+            // Show loading state
+            const originalText = searchBtn.innerHTML;
+            searchBtn.innerHTML = '<span class="loading"></span> Đang tìm...';
+            searchBtn.disabled = true;
+            
+            // Hide previous results
+            hideResults();
+
+            try {
+                const response = await fetch(`/api/student/${encodeURIComponent(studentId)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStudentInfo(data.data);
+                } else {
+                    showError(data.message);
+                }
+            } catch (error) {
+                console.error('API Error:', error);
+                showError('Có lỗi xảy ra khi tra cứu thông tin. Vui lòng thử lại!');
+            } finally {
+                // Reset button state
+                searchBtn.innerHTML = originalText;
+                searchBtn.disabled = false;
+            }
+        }
+
+        function showStudentInfo(student) {
+            hideError();
+            
+            const resultsHTML = `
+                <!-- Phần 1: Thông tin chung -->
+                <div class="student-info">
+                    <div class="student-details">
+                        <div class="student-name">${student.name}</div>
+                        <div class="student-meta">
+                            <div class="meta-item">
+                                <div class="meta-label">Mã sinh viên</div>
+                                <div class="meta-value">${student.id}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Ngày sinh</div>
+                                <div class="meta-value">${student.birthDate || 'N/A'}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Lớp</div>
+                                <div class="meta-value">${student.class || 'N/A'}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Nơi sinh</div>
+                                <div class="meta-value">${student.birthPlace || 'N/A'}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Đối tượng</div>
+                                <div class="meta-value">${student.category || 'N/A'}</div>
+                            </div>
+                            <div class="meta-item">
+                                <div class="meta-label">Kết quả</div>
+                                <div class="meta-value">${student.result || 'N/A'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Phần 2: Thông tin điểm (2 môn 1 hàng) -->
+                <div class="scores-section">
+                    <h3 class="section-title">Điểm các môn học</h3>
+                    <div class="scores-grid-two-columns">
+                        ${generateScoresHTML(student.scores || [])}
+                    </div>
+                </div>
+
+                <!-- Phần 3: Thông tin ghi chú -->
+                ${student.notes && student.notes.length > 0 ? `
+                <div class="notes-section">
+                    <h3 class="section-title">Ghi chú</h3>
+                    <div class="notes-content">
+                        ${student.notes.map((note, index) => `
+                            <div class="note-item">
+                                <div class="note-label">Ghi chú ${index + 1}:</div>
+                                <div class="note-text">${formatNoteWithLinks(note)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            `;
+            
+            resultsSection.innerHTML = resultsHTML;
+            resultsSection.style.display = 'block';
+            resultsSection.classList.add('success-animation');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateScoresHTML(scores) {
+            if (!scores || scores.length === 0) {
+                return '<div class="no-scores">Chưa có thông tin điểm</div>';
+            }
+
+            return scores.map(score => `
+                <div class="score-card">
+                    <div class="score-header">${score.name}</div>
+                    <div class="score-display">
+                        <div class="score-badge ${isNumeric(score.value) ? 'numeric' : 'grade'}">
+                            ${score.value}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function isNumeric(value) {
+            return !isNaN(parseFloat(value)) && isFinite(value);
+        }
+
+        function formatNoteWithLinks(note) {
+            if (!note) return '';
+            
+            // Tìm và chuyển đổi URL thành link
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            return note.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
+        }
+
+        function getScoreClass(score) {
+            if (score >= 8.5) return 'excellent';
+            if (score >= 7.0) return 'good';
+            if (score >= 5.5) return 'average';
+            return 'poor';
+        }
+
+        function showError(message) {
+            hideResults();
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            errorMessage.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        function hideResults() {
+            resultsSection.style.display = 'none';
+            hideError();
+        }
+
+        function showContact() {
+            alert('Liên hệ:\nEmail: contact@hvtc.edu.vn\nĐiện thoại: (024) 3754 4289');
+        }
+
+        function showHelp() {
+            alert('Hướng dẫn sử dụng:\n1. Nhập mã sinh viên hoặc tên sinh viên\n2. Chọn từ danh sách gợi ý hoặc nhấn "Tra cứu"\n3. Xem kết quả trong 3 phần:\n   - Thông tin chung\n   - Điểm các môn (2 môn 1 hàng)\n   - Ghi chú\n\nMã sinh viên mẫu: SV001, SV002, SV003');
+        }
+
+        function showPrivacy() {
+            alert('Chính sách bảo mật:\nThông tin sinh viên được bảo mật theo quy định của nhà trường.');
+        }
+    </script>
+</body>
+</html>
