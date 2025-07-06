@@ -35,7 +35,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            width: 1000px;
             margin: 0 auto;
             padding: 0 20px;
         }
@@ -325,11 +325,114 @@
             margin-top: 2px;
         }
 
-        /* Scores Grid - 2 columns layout */
-        .scores-grid-two-columns {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+        /* Scores Table */
+        .scores-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .scores-table th {
+            background: linear-gradient(135deg, #0a7180 0%, #0e8a9a 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .scores-table th:first-child {
+            text-align: center;
+            width: 80px;
+        }
+
+        .scores-table th:last-child {
+            text-align: center;
+            width: 120px;
+        }
+
+        .scores-table td {
+            padding: 18px 15px;
+            border-bottom: 1px solid #e9e9e9;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+        }
+
+        .scores-table td:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: #666;
+            padding-left: 24px;
+            border-right: 1px solid #e9e9e9;
+        }
+
+        .scores-table td:last-child {
+            text-align: center;
+        }
+
+        .scores-table tr:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .scores-table tr:nth-child(even) {
+            background-color: #f8fbfc;
+        }
+
+        .scores-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .scores-table .score-badge {
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 10px;
+            color: white;
+            background: linear-gradient(135deg, #0a7180 0%, #0e8a9a 100%);
+            box-shadow: 0 4px 15px rgba(10, 113, 128, 0.3);
+            min-width: 60px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .scores-table .score-badge.numeric {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        }
+
+        .scores-table .score-badge.grade {
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+            box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+        }
+
+        /* Section titles */
+        .section-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(135deg, #0a7180 0%, #f4d03f 100%);
+            border-radius: 2px;
         }
 
         .score-card {
@@ -689,6 +792,7 @@
         @media (max-width: 768px) {
             .container {
                 padding: 0 20px;
+                width: 90%;
             }
 
             .org-name {
@@ -727,15 +831,86 @@
                 gap: 10px;
             }
 
-            .scores-detail {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 10px;
+            .section-title {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
             }
 
-            .subject-header {
-                flex-direction: column;
-                gap: 10px;
-                align-items: flex-start;
+            /* Table Mobile - Card Layout */
+            .scores-table {
+                display: block;
+                border-radius: 12px;
+                box-shadow: none;
+                background: transparent;
+            }
+
+            .scores-table thead {
+                display: none;
+            }
+
+            .scores-table tbody {
+                display: block;
+            }
+
+            .scores-table tr {
+                display: block;
+                background: white;
+                border: none;
+                padding: 20px;
+                margin-bottom: 15px;
+                border-radius: 12px;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+                position: relative;
+                transition: all 0.3s ease;
+            }
+
+            .scores-table tr:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            }
+
+            .scores-table tr:nth-child(even) {
+                background-color: white;
+            }
+
+            .scores-table td {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: none;
+                padding: 12px 0;
+                text-align: center !important;
+                border-bottom: 1px solid #f0f4f7;
+                position: relative;
+                margin: 0;
+            }
+
+            .scores-table td:first-child {
+                border-right: none;
+                padding-left: 0;
+                font-weight: 700;
+                color: #0a7180;
+                font-size: 1.1rem;
+                justify-content: center;
+            }
+
+            .scores-table td:last-child {
+                border-bottom: none;
+                justify-content: center;
+            }
+
+            .scores-table td:before {
+                display: none;
+            }
+
+            .scores-table tr:before {
+                display: none;
+            }
+
+            .scores-table .score-badge {
+                font-size: 1rem;
+                padding: 8px 16px;
+                min-width: 60px;
             }
 
             .overall-gpa {
@@ -750,26 +925,6 @@
             .footer-links {
                 justify-content: center;
                 flex-wrap: wrap;
-            }
-
-            /* Responsive scores grid */
-            .scores-grid-two-columns {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .score-card {
-                padding: 14px;
-            }
-
-            .score-header {
-                font-size: 1rem;
-            }
-
-            .score-badge {
-                font-size: 1.2rem;
-                padding: 8px 16px;
-                min-width: 70px;
             }
 
             .notes-content {
@@ -787,16 +942,46 @@
                 padding: 20px 15px;
             }
 
-            .subject-card {
-                padding: 20px;
+            .container {
+                width: 95%;
+                padding: 0 10px;
             }
 
-            .scores-detail {
-                grid-template-columns: 1fr;
+            .scores-table tr {
+                padding: 15px;
+                margin-bottom: 12px;
+            }
+
+            .scores-table td {
+                padding: 10px 0;
+                font-size: 0.95rem;
+            }
+
+            .scores-table td:first-child {
+                font-size: 1rem;
+            }
+
+            .scores-table .score-badge {
+                font-size: 0.9rem;
+                padding: 6px 12px;
+                min-width: 50px;
+            }
+
+            .section-title {
+                font-size: 1.3rem;
             }
 
             .overall-gpa {
                 font-size: 2rem;
+            }
+
+            .note-item {
+                padding: 10px;
+                margin-bottom: 12px;
+            }
+
+            .notes-content {
+                padding: 15px 10px;
             }
         }
     </style>
@@ -1023,7 +1208,7 @@
                         <div class="student-name">${student.name}</div>
                         <div class="student-meta">
                             <div class="meta-item">
-                                <div class="meta-label">Mã sinh viên</div>
+                                <div class="meta-label">${student.idType}</div>
                                 <div class="meta-value">${student.id}</div>
                             </div>
                             <div class="meta-item">
@@ -1050,12 +1235,10 @@
                     </div>
                 </div>
 
-                <!-- Phần 2: Thông tin điểm (2 môn 1 hàng) -->
+                <!-- Phần 2: Thông tin điểm -->
                 <div class="scores-section">
                     <h3 class="section-title">Điểm các môn học</h3>
-                    <div class="scores-grid-two-columns">
-                        ${generateScoresHTML(student.scores || [])}
-                    </div>
+                    ${generateScoresHTML(student.scores || [])}
                 </div>
 
                 <!-- Phần 3: Thông tin ghi chú -->
@@ -1085,16 +1268,28 @@
                 return '<div class="no-scores">Chưa có thông tin điểm</div>';
             }
 
-            return scores.map(score => `
-                <div class="score-card">
-                    <div class="score-header">${score.name}</div>
-                    <div class="score-display">
-                        <div class="score-badge ${isNumeric(score.value) ? 'numeric' : 'grade'}">
-                            ${score.value}
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            return `
+                <table class="scores-table">
+                    <thead>
+                        <tr>
+                            <th style='width:75%;'>Tên môn học</th>
+                            <th style='width:25%;'>Điểm</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${scores.map((score, index) => `
+                            <tr data-index="${index + 1}">
+                                <td data-label="Môn học">${score.name}</td>
+                                <td data-label="Điểm">
+                                    <span class="score-badge ${isNumeric(score.value) ? 'numeric' : 'grade'}">
+                                        ${score.value}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
         }
 
         function isNumeric(value) {
@@ -1107,13 +1302,6 @@
             // Tìm và chuyển đổi URL thành link
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             return note.replace(urlRegex, '<a href="$1" target="_blank">$1</a>');
-        }
-
-        function getScoreClass(score) {
-            if (score >= 8.5) return 'excellent';
-            if (score >= 7.0) return 'good';
-            if (score >= 5.5) return 'average';
-            return 'poor';
         }
 
         function showError(message) {

@@ -16,9 +16,6 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Load student data from Excel file
-let studentsData = {};
-
 function loadStudentData() {
     try {
         const workbook = xlsx.readFile(path.join(__dirname, 'data', 'students.xlsx'));
@@ -29,8 +26,19 @@ function loadStudentData() {
         // Process data with new structure
         studentsData = {};
         data.forEach(row => {
-            const studentId = row['Mã sinh viên']?.toString();
+            let studentId = row['Mã sinh viên']?.toString();
             if (!studentId) return;
+            
+            let idType = 'Mã sinh viên'; // Default to 'SV' if not specifie
+
+            if (studentId.startsWith('[masv]')) {
+                studentId = studentId.replace('[masv]', '').trim();
+            }
+
+            if (studentId.startsWith('[cccd]')) {
+                idType = 'Số CCCD';
+                studentId = studentId.replace('[cccd]', '').trim();
+            }
             
             // Convert Excel date number to JavaScript date
             let birthDate = '';
@@ -45,10 +53,11 @@ function loadStudentData() {
             }
 
             let scores = [];
+            let notes = [];
 
             for (const key in row) {
-                if (key.startsWith('Điểm ')) {
-                    const scoreName = key.replace('Điểm ', '');
+                if (key.startsWith('[Điểm]')) {
+                    const scoreName = key.replace('[Điểm]', '').trim();
 
                     if (row[key] && row[key] !== 'N/A') {
                         scores.push({
@@ -57,19 +66,17 @@ function loadStudentData() {
                         });
                     }
                 }
-            }
-            
-            // Extract notes
-            const notes = [];
-            for (let i = 1; i <= 3; i++) {
-                const noteKey = `Ghi chú ${i}`;
-                if (row[noteKey]) {
-                    notes.push(row[noteKey]);
+                
+                if (key.startsWith('[Ghi chú]')) {
+                    if (row[key]) {
+                        notes.push(row[key]);
+                    }
                 }
             }
             
             studentsData[studentId] = {
                 stt: row['STT'] || '',
+                idType: idType,
                 id: studentId,
                 name: row['Họ và tên'] || row['Họ tên'] || '',
                 birthDate: birthDate,
@@ -82,87 +89,13 @@ function loadStudentData() {
             };
         });
         
-        console.log(`Loaded ${Object.keys(studentsData).length} students data`);
+        return studentsData;
     } catch (error) {
         console.error('Error loading student data:', error);
-        // Create sample data if file doesn't exist
-        createSampleData();
+
+        return {};
     }
 }
-
-function createSampleData() {
-    studentsData = {
-        "SV001": {
-            stt: 1,
-            id: "SV001",
-            name: "Nguyễn Văn A",
-            birthDate: "15/03/2003",
-            class: "TX01/21.01HN01",
-            birthPlace: "Hà Nội",
-            category: "2.5 năm",
-            result: "Đạt",
-            scores: [
-                { name: "Môn 1", value: 8.5 },
-                { name: "Môn 2", value: "CT1" },
-                { name: "Môn 3", value: "CT2" },
-                { name: "Môn 4", value: 7.8 },
-                { name: "Môn 5", value: "2.5A" }
-            ],
-            notes: [
-                "Sinh viên học tập tốt, có thái độ học tập nghiêm túc",
-                "Cần cải thiện kỹ năng thuyết trình (https://example.com/guide)",
-                "Đề xuất tham gia hoạt động ngoại khóa"
-            ]
-        },
-        "SV002": {
-            stt: 2,
-            id: "SV002",
-            name: "Nguyễn Bá Bình",
-            birthDate: "20/01/2003",
-            class: "TX01/21.01HN01",
-            birthPlace: "Hà Nội",
-            category: "2.5 năm",
-            result: "Đạt",
-            scores: [
-                { name: "Môn 1", value: 6.2 },
-                { name: "Môn 2", value: "CT1" },
-                { name: "Môn 3", value: "CT2" },
-                { name: "Môn 10", value: "2.5A" }
-            ],
-            notes: [
-                "note1(có thể gán được link url)",
-                "note2(có thể gán được link url)",
-                "note3(có thể gán được link url)"
-            ]
-        },
-        "SV003": {
-            stt: 3,
-            id: "SV003",
-            name: "Trần Thị C",
-            birthDate: "10/05/2003",
-            class: "TX02/21.01HN02",
-            birthPlace: "Hải Phòng",
-            category: "3 năm",
-            result: "Giỏi",
-            scores: [
-                { name: "Môn 1", value: 9.2 },
-                { name: "Môn 2", value: "A" },
-                { name: "Môn 3", value: "A+" },
-                { name: "Môn 4", value: 8.8 },
-                { name: "Môn 5", value: "3.5A" },
-                { name: "Môn 6", value: 9.0 }
-            ],
-            notes: [
-                "Sinh viên xuất sắc, đạt nhiều thành tích cao",
-                "Được đề xuất học bổng (https://scholarship.edu.vn)",
-                "Tham gia nghiên cứu khoa học"
-            ]
-        }
-    };
-}
-
-// Load data on startup
-loadStudentData();
 
 // Routes
 app.get('/', (req, res) => {
@@ -173,6 +106,7 @@ app.get('/', (req, res) => {
 
 // API to get student information
 app.get('/api/student/:id', (req, res) => {
+    const studentsData = loadStudentData();
     const studentId = req.params.id;
     const student = studentsData[studentId];
     
@@ -196,6 +130,7 @@ app.get('/api/search', (req, res) => {
     if (!query || query.length < 2) {
         return res.json({ success: true, data: [] });
     }
+    const studentsData = loadStudentData();
     
     const results = Object.values(studentsData)
         .filter(student => 
@@ -217,6 +152,7 @@ app.get('/api/search', (req, res) => {
 
 // API to get all students (for admin)
 app.get('/api/students', (req, res) => {
+    const studentsData = loadStudentData();
     const students = Object.values(studentsData).map(student => ({
         id: student.id,
         name: student.name,
@@ -231,22 +167,6 @@ app.get('/api/students', (req, res) => {
         data: students,
         total: students.length
     });
-});
-
-// API to reload data from Excel
-app.post('/api/reload-data', (req, res) => {
-    try {
-        loadStudentData();
-        res.json({
-            success: true,
-            message: 'Dữ liệu đã được tải lại thành công'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Lỗi khi tải lại dữ liệu: ' + error.message
-        });
-    }
 });
 
 // Error handling middleware
