@@ -125,14 +125,63 @@
         .search-form {
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-end;
             gap: 15px;
             flex-wrap: wrap;
             position: relative;
         }
 
-        .input-group {
-            position: relative;
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #2c3e50;
+            text-align: left;
+        }
+
+
+
+        #examPeriod {
+            padding: 18px 25px;
+            font-size: 1.1rem;
+            border: 2px solid #e3e8ed;
+            border-radius: 15px;
+            width: 280px;
+            transition: all 0.3s ease;
+            outline: none;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a7180' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 20px;
+            padding-right: 50px;
+        }
+
+        #examPeriod:focus {
+            border-color: #0a7180;
+            box-shadow: 0 0 20px rgba(10, 113, 128, 0.3);
+            transform: translateY(-2px);
+        }
+
+        #examPeriod:hover {
+            border-color: #0a7180;
+            transform: translateY(-1px);
+        }
+
+        #examPeriod option {
+            padding: 10px;
+            background: white;
+            color: #333;
         }
 
         #studentId {
@@ -156,54 +205,6 @@
         #studentId::placeholder {
             color: #a0a8b0;
             font-style: italic;
-        }
-
-        /* Autocomplete dropdown */
-        .autocomplete-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #e3e8ed;
-            border-top: none;
-            border-radius: 0 0 15px 15px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            display: none;
-        }
-
-        .autocomplete-item {
-            padding: 12px 20px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f4f7;
-            transition: background-color 0.2s ease;
-        }
-
-        .autocomplete-item:hover,
-        .autocomplete-item.selected {
-            background-color: #f8f9fa;
-        }
-
-        .autocomplete-item:last-child {
-            border-bottom: none;
-        }
-
-        .student-id {
-            font-weight: 600;
-            color: #0a7180;
-        }
-
-        .student-name {
-            color: #ffffff;
-            font-size: 0.9rem;
-        }
-
-        .student-class {
-            color: #999;
-            font-size: 0.8rem;
         }
 
         .search-btn {
@@ -812,12 +813,23 @@
             .search-form {
                 flex-direction: column;
                 gap: 20px;
+                align-items: stretch;
             }
 
+            .form-group {
+                width: 100%;
+            }
+
+            #examPeriod,
             #studentId {
                 width: 100%;
                 padding: 16px 20px;
                 border-radius: 12px;
+            }
+
+            #examPeriod {
+                padding-right: 45px;
+                background-size: 18px;
             }
 
             .search-btn {
@@ -1006,14 +1018,20 @@
             <div class="search-section">
                 <h2 class="search-title">Tra cứu điểm sinh viên</h2>
                 <form class="search-form" id="searchForm">
-                    <div class="input-group">
+                    <div class="form-group">
+                        <label for="examPeriod" class="form-label">Kỳ thi</label>
+                        <select id="examPeriod" name="examPeriod">
+                            <option value="">Đang tải...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentId" class="form-label">Mã sinh viên / CCCD</label>
                         <input 
                             type="text" 
                             id="studentId" 
                             placeholder="Nhập mã sinh viên hoặc số CCCD"
                             autocomplete="off"
                         >
-                        <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
                     </div>
                     <button type="submit" class="search-btn" id="searchBtn">
                         🔍 Tra cứu
@@ -1053,20 +1071,44 @@
     <script>
         // Global variables
         let selectedIndex = -1;
-        let autocompleteItems = [];
 
         // DOM elements
         const studentIdInput = document.getElementById('studentId');
-        const autocompleteDropdown = document.getElementById('autocompleteDropdown');
+        const examPeriodSelect = document.getElementById('examPeriod');
         const searchForm = document.getElementById('searchForm');
         const searchBtn = document.getElementById('searchBtn');
         const resultsSection = document.getElementById('results');
         const errorMessage = document.getElementById('errorMessage');
 
-        // Auto-focus on input when page loads
+        // Auto-focus on input when page loads and load exam periods
         window.addEventListener('load', () => {
+            loadExamPeriods();
             studentIdInput.focus();
         });
+
+        // Load exam periods
+        async function loadExamPeriods() {
+            try {
+                const response = await fetch('/api/exam-periods');
+                const data = await response.json();
+                
+                if (data.success) {
+                    examPeriodSelect.innerHTML = data.data.map(period => 
+                        `<option value="${period.value}">${period.label}</option>`
+                    ).join('');
+                    
+                    // Select first option by default
+                    if (data.data.length > 0) {
+                        examPeriodSelect.selectedIndex = 0;
+                    }
+                } else {
+                    examPeriodSelect.innerHTML = '<option value="">Lỗi khi tải kỳ thi</option>';
+                }
+            } catch (error) {
+                console.error('Error loading exam periods:', error);
+                examPeriodSelect.innerHTML = '<option value="">Lỗi khi tải kỳ thi</option>';
+            }
+        }
 
         // Search form submission
         searchForm.addEventListener('submit', (e) => {
@@ -1074,97 +1116,14 @@
             searchStudent();
         });
 
-        studentIdInput.addEventListener('keydown', handleKeyDown);
-
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        async function handleInput(e) {
-            const query = e.target.value.trim();
-            
-            if (query.length < 2) {
-                hideAutocomplete();
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if (data.success && data.data.length > 0) {
-                    showAutocomplete(data.data);
-                } else {
-                    hideAutocomplete();
-                }
-            } catch (error) {
-                console.error('Search error:', error);
-                hideAutocomplete();
-            }
-        }
-
-        function showAutocomplete(items) {
-            autocompleteItems = items;
-            selectedIndex = -1;
-            
-            autocompleteDropdown.innerHTML = items.map((item, index) => `
-                <div class="autocomplete-item" onclick="selectStudent('${item.id}', '${item.name}')" data-index="${index}">
-                    <div class="student-id">${item.id}</div>
-                    <div class="student-name">${item.name}</div>
-                    <div class="student-class">${item.class}</div>
-                </div>
-            `).join('');
-            
-            autocompleteDropdown.style.display = 'block';
-        }
-
-        function hideAutocomplete() {
-            autocompleteDropdown.style.display = 'none';
-            selectedIndex = -1;
-        }
-
-        function handleKeyDown(e) {
-            const items = autocompleteDropdown.querySelectorAll('.autocomplete-item');
-            
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                if (selectedIndex >= 0 && autocompleteItems[selectedIndex]) {
-                    const item = autocompleteItems[selectedIndex];
-                    selectStudent(item.id, item.name);
-                } else {
-                    searchStudent();
-                }
-            } else if (e.key === 'Escape') {
-                hideAutocomplete();
-            }
-        }
-
-        function updateSelection(items) {
-            items.forEach((item, index) => {
-                if (index === selectedIndex) {
-                    item.classList.add('selected');
-                } else {
-                    item.classList.remove('selected');
-                }
-            });
-        }
-
-        function selectStudent(id, name) {
-            studentIdInput.value = id;
-            hideAutocomplete();
-            searchStudent();
-        }
-
         async function searchStudent() {
             const studentId = studentIdInput.value.trim();
+            const examPeriod = examPeriodSelect.value;
+            
+            if (!examPeriod) {
+                showError('Vui lòng chọn kỳ thi!');
+                return;
+            }
             
             if (!studentId) {
                 showError('Vui lòng nhập mã sinh viên!');
@@ -1180,7 +1139,8 @@
             hideResults();
 
             try {
-                const response = await fetch(`/api/student/${encodeURIComponent(studentId)}`);
+                const url = `/api/student/${encodeURIComponent(studentId)}?examPeriod=${encodeURIComponent(examPeriod)}`;
+                const response = await fetch(url);
                 const data = await response.json();
                 
                 if (data.success) {

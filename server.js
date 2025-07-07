@@ -16,11 +16,17 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-function loadStudentData() {
+function loadStudentData(sheetName = null) {
     try {
         const workbook = xlsx.readFile(path.join(__dirname, 'data', 'students.xlsx'));
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
+        const targetSheetName = sheetName || workbook.SheetNames[0];
+        
+        if (!workbook.SheetNames.includes(targetSheetName)) {
+            console.error(`Sheet "${targetSheetName}" not found`);
+            return {};
+        }
+        
+        const worksheet = workbook.Sheets[targetSheetName];
         const data = xlsx.utils.sheet_to_json(worksheet);
         
         // Process data with new structure
@@ -108,10 +114,34 @@ app.get('/', (req, res) => {
     });
 });
 
+// API to get list of sheets (exam periods)
+app.get('/api/exam-periods', (req, res) => {
+    try {
+        const workbook = xlsx.readFile(path.join(__dirname, 'data', 'students.xlsx'));
+        const sheets = workbook.SheetNames.map(name => ({
+            value: name,
+            label: name
+        }));
+        
+        res.json({
+            success: true,
+            data: sheets
+        });
+    } catch (error) {
+        console.error('Error reading exam periods:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi khi đọc danh sách kỳ thi'
+        });
+    }
+});
+
 // API to get student information
 app.get('/api/student/:id', (req, res) => {
-    const studentsData = loadStudentData();
     const studentId = req.params.id;
+    const examPeriod = req.query.examPeriod; // Get exam period from query parameter
+    
+    const studentsData = loadStudentData(examPeriod);
     const student = studentsData[studentId];
     
     if (!student) {
@@ -124,33 +154,6 @@ app.get('/api/student/:id', (req, res) => {
     res.json({
         success: true,
         data: student
-    });
-});
-
-// API to search students (for autocomplete)
-app.get('/api/search', (req, res) => {
-    const query = req.query.q?.toLowerCase() || '';
-    
-    if (!query || query.length < 2) {
-        return res.json({ success: true, data: [] });
-    }
-    const studentsData = loadStudentData();
-    
-    const results = Object.values(studentsData)
-        .filter(student => 
-            student.id.toLowerCase().includes(query) ||
-            student.name.toLowerCase().includes(query)
-        )
-        .slice(0, 10) // Limit results
-        .map(student => ({
-            id: student.id,
-            name: student.name,
-            class: student.class
-        }));
-    
-    res.json({
-        success: true,
-        data: results
     });
 });
 
