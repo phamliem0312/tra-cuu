@@ -30,21 +30,10 @@ function loadStudentData(sheetName = null) {
         const data = xlsx.utils.sheet_to_json(worksheet);
         
         // Process data with new structure
-        studentsData = {};
+        let studentsData = {};
         data.forEach(row => {
-            let studentId = row['Mã sinh viên']?.toString();
-            if (!studentId) return;
-            
-            let idType = 'Mã sinh viên'; // Default to 'SV' if not specifie
-
-            if (studentId.startsWith('[masv]')) {
-                studentId = studentId.replace('[masv]', '').trim();
-            }
-
-            if (studentId.startsWith('[cccd]')) {
-                idType = 'Số CCCD';
-                studentId = studentId.replace('[cccd]', '').trim();
-            }
+            let studentId = '';
+            let idType = '';
             
             // Convert Excel date number to JavaScript date
             let birthDate = '';
@@ -62,6 +51,11 @@ function loadStudentData(sheetName = null) {
             let notes = [];
 
             for (const key in row) {
+                if (key.startsWith('[ID]')) {
+                    studentId = row[key].toString().trim();
+                    idType = key.replace('[ID]', '').trim();
+                }
+
                 if (key.startsWith('[Điểm]')) {
                     const scoreName = key.replace('[Điểm]', '').trim();
 
@@ -82,6 +76,10 @@ function loadStudentData(sheetName = null) {
                         });
                     }
                 }
+            }
+
+            if (!studentId) {
+                return;
             }
             
             studentsData[studentId] = {
