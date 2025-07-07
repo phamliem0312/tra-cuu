@@ -1010,7 +1010,7 @@
                         <input 
                             type="text" 
                             id="studentId" 
-                            placeholder="Nhập mã sinh viên hoặc tên sinh viên..."
+                            placeholder="Nhập mã sinh viên hoặc số CCCD"
                             autocomplete="off"
                         >
                         <div class="autocomplete-dropdown" id="autocompleteDropdown"></div>
@@ -1248,8 +1248,8 @@
                     <div class="notes-content">
                         ${student.notes.map((note, index) => `
                             <div class="note-item">
-                                <div class="note-label">Ghi chú ${index + 1}:</div>
-                                <div class="note-text">${formatNoteWithLinks(note)}</div>
+                                <div class="note-label">${note.name}:</div>
+                                <div class="note-text">${formatNoteWithLinks(note.value)}</div>
                             </div>
                         `).join('')}
                     </div>

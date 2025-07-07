@@ -68,8 +68,12 @@ function loadStudentData() {
                 }
                 
                 if (key.startsWith('[Ghi chú]')) {
+                    const noteKey = key.replace('[Ghi chú]', '').trim();
                     if (row[key]) {
-                        notes.push(row[key]);
+                        notes.push({
+                            name: noteKey,
+                            value: row[key]
+                        });
                     }
                 }
             }
@@ -113,7 +117,7 @@ app.get('/api/student/:id', (req, res) => {
     if (!student) {
         return res.status(404).json({
             success: false,
-            message: 'Không tìm thấy thông tin sinh viên với mã số này!'
+            message: 'Không tìm thấy thông tin sinh viên!'
         });
     }
     
