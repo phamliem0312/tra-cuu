@@ -16,10 +16,11 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-function loadStudentData(sheetName = null) {
+function loadStudentData(fileName = null) {
     try {
-        const workbook = xlsx.readFile(path.join(__dirname, 'data', 'students.xlsx'));
-        const targetSheetName = sheetName || workbook.SheetNames[0];
+        const file = fileName || 'students.xlsx';
+        const workbook = xlsx.readFile(path.join(__dirname, 'data', file));
+        const targetSheetName = workbook.SheetNames[0];
         
         if (!workbook.SheetNames.includes(targetSheetName)) {
             console.error(`Sheet "${targetSheetName}" not found`);
@@ -107,6 +108,42 @@ function loadStudentData(sheetName = null) {
     }
 }
 
+function getXlsxFiles() {
+    try {
+        const dataFolderPath = path.join(__dirname, 'data');
+        
+        // Check if data folder exists
+        if (!fs.existsSync(dataFolderPath)) {
+            console.error('Data folder not found');
+            return [];
+        }
+        
+        // Read all files in data folder
+        const files = fs.readdirSync(dataFolderPath);
+        
+        // Filter only xlsx files
+        const xlsxFiles = files.filter(file => {
+            return path.extname(file).toLowerCase() === '.xlsx';
+        });
+        
+        return xlsxFiles.map(file => {
+            const filePath = path.join(dataFolderPath, file);
+            const stats = fs.statSync(filePath);
+            
+            return {
+                name: file,
+                displayName: path.basename(file, '.xlsx'), // Tên file không có extension
+                fullPath: filePath,
+                size: stats.size,
+                modified: stats.mtime
+            };
+        });
+    } catch (error) {
+        console.error('Error reading xlsx files:', error);
+        return [];
+    }
+}
+
 // Routes
 app.get('/', (req, res) => {
     res.render('index', { 
@@ -117,10 +154,11 @@ app.get('/', (req, res) => {
 // API to get list of sheets (exam periods)
 app.get('/api/exam-periods', (req, res) => {
     try {
-        const workbook = xlsx.readFile(path.join(__dirname, 'data', 'students.xlsx'));
-        const sheets = workbook.SheetNames.map(name => ({
-            value: name,
-            label: name
+
+        const fileList = getXlsxFiles();
+        const sheets = fileList.map(file => ({
+            value: file.name,
+            label: file.displayName
         }));
         
         res.json({
