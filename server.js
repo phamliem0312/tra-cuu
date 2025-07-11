@@ -17,6 +17,26 @@ app.use(express.static('public'));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+let dataCache = {};
+
+function getCachedData() {
+    const fileList = getXlsxFiles();
+
+    fileList.forEach(file => {
+        dataCache[file.name] = loadStudentData(file.name);
+    });
+}
+
+function fetchData() {
+    getCachedData();
+    
+    setInterval(() => {
+        getCachedData();
+    }, 1000 * 60 * 5); // Refresh cache every 5 minutes
+}
+
+fetchData();
+
 function loadStudentData(fileName = null) {
     try {
         const file = fileName || 'students.xlsx';
@@ -153,7 +173,6 @@ app.get('/', (req, res) => {
 // API to get list of sheets (exam periods)
 app.get('/api/exam-periods', (req, res) => {
     try {
-
         const fileList = getXlsxFiles();
         const sheets = fileList.map(file => ({
             value: file.name,
@@ -178,7 +197,7 @@ app.get('/api/student/:id', (req, res) => {
     const studentId = req.params.id;
     const examPeriod = req.query.examPeriod; // Get exam period from query parameter
     
-    const studentsData = loadStudentData(examPeriod);
+    const studentsData = dataCache[examPeriod];
     const student = studentsData[studentId];
     
     if (!student) {
